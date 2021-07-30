@@ -12,7 +12,7 @@ from .collector import GaugeCollector
 
 
 ADDR = os.getenv("LISTEN_ADDRESS", "localhost")
-PORT = int(os.getenv("LISTEN_PORT", 9180))
+PORT = int(os.getenv("LISTEN_PORT", "9180"))
 
 
 def main():

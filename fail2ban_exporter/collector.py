@@ -9,34 +9,50 @@ CMD = os.path.join(os.getenv("EXEC_PATH", "/usr/bin/"), "fail2ban-client")
 COMP = re.compile(r"\s([a-zA-Z\s]+):\t([a-zA-Z0-9-,\s]+)\n")
 
 
-class GaugeCollector(object):
+class GaugeCollector:
+    """Collect fail2ban jail stats and expose them as Prometheus metrics"""
+
     def __init__(self, ignored_jails):
         self.ignored_jails = ignored_jails
 
     def collect(self):
+        """Retrieve fail2ban jail stats"""
         for jail in self.get_jails():
-            g = GaugeMetricFamily(
-                "fail2ban_{}".format(self.snake_case(jail)), "", labels=["type"]
+            gauge = GaugeMetricFamily(
+                "fail2ban_{}".format(snake_case(jail)), "", labels=["type"]
             )
             for label, value in self.extract_data(jail):
-                g.add_metric([self.snake_case(label)], float(value))
-            yield g
+                gauge.add_metric([snake_case(label)], float(value))
+            yield gauge
 
     def get_jails(self):
-        r = run([CMD, "status"], stdout=PIPE, check=True)
-        m = re.search(r"Jail list:\s*([a-z\-, ]*)\n", r.stdout.decode("utf-8"))
-        if not m:
+        """Retrieve a list of fail2ban jails"""
+        result = run([CMD, "status"], stdout=PIPE, check=True)
+
+        matches = re.search(
+            r"Jail list:\s*([a-z\-, ]*)\n", result.stdout.decode("utf-8")
+        )
+        if not matches:
             return []
+
         return [
-            jail for jail in m.group(1).split(", ") if jail not in self.ignored_jails
+            jail
+            for jail in matches.group(1).split(", ")
+            if jail not in self.ignored_jails
         ]
 
-    def extract_data(self, jail):
+    @staticmethod
+    def extract_data(jail):
+        """Parse fail2ban jail stats and extract relevant metrics"""
         args = [CMD, "status"]
         if jail:
             args.append(jail)
-        r = run(args, stdout=PIPE, check=True)
-        return re.findall(COMP, r.stdout.decode("utf-8"))
 
-    def snake_case(self, string):
-        return string.strip().replace("-", "_").replace(" ", "_").lower()
+        result = run(args, stdout=PIPE, check=True)
+
+        return re.findall(COMP, result.stdout.decode("utf-8"))
+
+
+def snake_case(text):
+    """Normalize text to snake_case"""
+    return text.strip().replace("-", "_").replace(" ", "_").lower()
