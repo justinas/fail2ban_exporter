@@ -23,7 +23,9 @@ setup(
     url="https://github.com/xofym/fail2ban_exporter",
     keywords="fail2ban",
     packages=find_packages(exclude=["tests.*", "tests"]),
-    entry_points={"console_scripts": ["fail2ban_exporter = fail2ban_exporter.cli:main"]},
+    entry_points={
+        "console_scripts": ["fail2ban_exporter = fail2ban_exporter.cli:main"]
+    },
     install_requires=[
         "prometheus_client>=0.2.0,<0.3",
     ],
