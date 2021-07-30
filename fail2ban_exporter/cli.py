@@ -8,7 +8,8 @@ from time import sleep
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 
-from .collector import GaugeCollector
+from .client import Fail2BanClient
+from .collector import Collector
 
 
 ADDR = os.getenv("LISTEN_ADDRESS", "localhost")
@@ -29,9 +30,11 @@ def main():
     )
     args = parser.parse_args()
 
+    client = Fail2BanClient(args.ignored_jails)
+
     # Run HTTP server
     start_http_server(PORT, ADDR)
-    REGISTRY.register(GaugeCollector(args.ignored_jails))
+    REGISTRY.register(Collector(client))
     while True:
         sleep(10)
 
