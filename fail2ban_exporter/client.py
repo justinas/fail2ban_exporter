@@ -37,7 +37,7 @@ class Fail2BanClient:
         """Retrieve a list of fail2ban jails"""
         status = self.status()
 
-        matches = re.search(r"Jail list:\s*([a-z\-, ]*)\n", status)
+        matches = re.search(r"Jail list:\s*([a-z0-9\-, ]*)\n", status)
         if not matches:
             return []
 

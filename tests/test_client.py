@@ -49,6 +49,18 @@ def test_status(stdout: str):
         ),
         pytest.param(
             [],
+            "Status\n|- Number of jail: 2\n`- Jail list:    3proxy, apache2\n",
+            ["3proxy", "apache2"],
+            id="two enabled jails containing digits",
+        ),
+        pytest.param(
+            [],
+            "Status\n|- Number of jail: 2\n`- Jail list:    courier-auth, courier-smtp\n",
+            ["courier-auth", "courier-smtp"],
+            id="two enabled jails containing dashes",
+        ),
+        pytest.param(
+            [],
             "Status\n|- Number of jail: 2\n`- Jail list:    apache, sshd\n",
             ["apache", "sshd"],
             id="two enabled jails",
