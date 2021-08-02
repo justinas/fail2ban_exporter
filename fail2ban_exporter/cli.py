@@ -12,14 +12,23 @@ from .client import Fail2BanClient
 from .collector import Collector
 
 
-ADDR = os.getenv("LISTEN_ADDRESS", "localhost")
-PORT = int(os.getenv("LISTEN_PORT", "9180"))
-
-
 def main():
     """Command-line entrypoint"""
-    # Parse arguments
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-a",
+        "--addr",
+        default=os.getenv("LISTEN_ADDRESS", "localhost"),
+        help="Listen on this address",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        default=int(os.getenv("LISTEN_PORT", "9180")),
+        type=int,
+        help="Listen on this port",
+    )
     parser.add_argument(
         "-ij",
         "--ignore-jail",
@@ -28,12 +37,13 @@ def main():
         default=[],
         help="Ignore a jail. This argument can appear many times.",
     )
+
     args = parser.parse_args()
 
     client = Fail2BanClient(args.ignored_jails)
 
     # Run HTTP server
-    start_http_server(PORT, ADDR)
+    start_http_server(args.port, args.addr)
     REGISTRY.register(Collector(client))
     while True:
         sleep(10)
