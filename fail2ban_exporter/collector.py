@@ -1,7 +1,12 @@
 """Prometheus collector for fail2ban metrics"""
-from prometheus_client.core import GaugeMetricFamily
+from typing import Iterator
+
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
+from prometheus_client.metrics_core import Metric
 
 from .client import Fail2BanClient
+
+PREFIX = "fail2ban"
 
 
 class Collector:
@@ -12,15 +17,35 @@ class Collector:
     def __init__(self, client: Fail2BanClient):
         self.client = client
 
-    def collect(self):
+    def collect(self) -> Iterator[Metric]:
         """Retrieve fail2ban jail stats"""
         for jail in self.client.jails():
-            gauge = GaugeMetricFamily(
-                "fail2ban_{}".format(snake_case(jail)), "", labels=["type"]
+            jail_stats = self.client.jail_stats(jail)
+            jail_prefix = f"{PREFIX}_{snake_case(jail)}"
+
+            # Counters
+            yield CounterMetricFamily(
+                f"{jail_prefix}_banned_total",
+                f"Banned IPs for the {jail} jail",
+                jail_stats.banned_total,
             )
-            for label, value in self.client.jail_stats(jail):
-                gauge.add_metric([snake_case(label)], float(value))
-            yield gauge
+            yield CounterMetricFamily(
+                f"{jail_prefix}_failed_total",
+                f"Failed authentication attempts for the {jail} jail",
+                jail_stats.failed_total,
+            )
+
+            # Gauges
+            yield GaugeMetricFamily(
+                f"{jail_prefix}_banned",
+                f"Banned IPs for the {jail} jail",
+                jail_stats.banned,
+            )
+            yield GaugeMetricFamily(
+                f"{jail_prefix}_failed",
+                f"Failed authentication attempts for the {jail} jail",
+                jail_stats.failed,
+            )
 
 
 def snake_case(text):

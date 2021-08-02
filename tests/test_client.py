@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 
 from fail2ban_exporter.client import Fail2BanClient
+from fail2ban_exporter.jail_stats import JailStats
 
 
 @pytest.mark.parametrize(
@@ -86,7 +87,6 @@ def test_jails(ignored_jails: List[str], stdout: str, expected: List[str]):
 @pytest.mark.parametrize(
     "stdout, expected",
     [
-        pytest.param("", [], id="empty output"),
         pytest.param(
             (
                 "Status for the jail: sshd\n"
@@ -99,12 +99,13 @@ def test_jails(ignored_jails: List[str], stdout: str, expected: List[str]):
                 "   |- Total banned:\t0\n"
                 "   `- Banned IP list:\n"
             ),
-            [
-                ("Currently failed", "0"),
-                ("Total failed", "0"),
-                ("Currently banned", "0"),
-                ("Total banned", "0"),
-            ],
+            JailStats(
+                jail="sshd",
+                failed=0,
+                failed_total=0,
+                banned=0,
+                banned_total=0,
+            ),
             id="jail with no bans, no history",
         ),
         pytest.param(
@@ -119,12 +120,13 @@ def test_jails(ignored_jails: List[str], stdout: str, expected: List[str]):
                 "   |- Total banned:\t0\n"
                 "   `- Banned IP list:\n"
             ),
-            [
-                ("Currently failed", "0"),
-                ("Total failed", "0"),
-                ("Currently banned", "0"),
-                ("Total banned", "0"),
-            ],
+            JailStats(
+                jail="sshd",
+                failed=0,
+                failed_total=0,
+                banned=0,
+                banned_total=0,
+            ),
             id="jail with no bans, no history, tailing systemd journal",
         ),
         pytest.param(
@@ -140,12 +142,13 @@ def test_jails(ignored_jails: List[str], stdout: str, expected: List[str]):
                 "   `- Banned IP list:\t"
                 "172.68.34.5 172.68.34.6 172.68.34.7 172.68.34.8 10.45.0.127\n"
             ),
-            [
-                ("Currently failed", "0"),
-                ("Total failed", "0"),
-                ("Currently banned", "5"),
-                ("Total banned", "5"),
-            ],
+            JailStats(
+                jail="sshd",
+                failed=0,
+                failed_total=0,
+                banned=5,
+                banned_total=5,
+            ),
             id="jail with manual bans, no history",
         ),
         pytest.param(
@@ -160,12 +163,13 @@ def test_jails(ignored_jails: List[str], stdout: str, expected: List[str]):
                 "   |- Total banned:\t1\n"
                 "   `- Banned IP list:\t0.0.0.0\n"
             ),
-            [
-                ("Currently failed", "1"),
-                ("Total failed", "9"),
-                ("Currently banned", "1"),
-                ("Total banned", "1"),
-            ],
+            JailStats(
+                jail="sshd",
+                failed=1,
+                failed_total=9,
+                banned=1,
+                banned_total=1,
+            ),
             id="jail with bans, history, tailing systemd journal",
         ),
     ],
@@ -179,5 +183,7 @@ def test_jail_stats(stdout: str, expected: List[str]):
 
     jail_stats = client.jail_stats("sshd")
 
-    assert len(jail_stats) == len(expected)
-    assert jail_stats == expected
+    assert jail_stats.failed == expected.failed
+    assert jail_stats.failed_total == expected.failed_total
+    assert jail_stats.banned == expected.banned
+    assert jail_stats.banned_total == expected.banned_total

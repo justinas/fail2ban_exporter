@@ -4,6 +4,8 @@ import re
 from typing import List
 from subprocess import PIPE, run
 
+from .jail_stats import JailStats
+
 FAIL2BAN_CLIENT = os.path.join(os.getenv("EXEC_PATH", "/usr/bin/"), "fail2ban-client")
 COMP = re.compile(r"\s([a-zA-Z\s]+):\t([a-zA-Z0-9-,\s]+)\n")
 
@@ -47,7 +49,16 @@ class Fail2BanClient:
             if jail not in self.ignored_jails
         ]
 
-    def jail_stats(self, jail: str):
+    def jail_stats(self, jail: str) -> JailStats:
         """Retrieve the stats for a given fail2ban jail"""
         jail_status = self.status(jail)
-        return re.findall(COMP, jail_status)
+        matches = re.findall(COMP, jail_status)
+        raw_stats = dict(matches)
+
+        return JailStats(
+            jail=jail,
+            failed=int(raw_stats.get("Currently failed", "0")),
+            failed_total=int(raw_stats.get("Total failed", "0")),
+            banned=int(raw_stats.get("Currently banned", "0")),
+            banned_total=int(raw_stats.get("Total banned", "0")),
+        )
