@@ -19,7 +19,7 @@ def main():
     parser.add_argument(
         "-a",
         "--addr",
-        default=os.getenv("LISTEN_ADDRESS", "localhost"),
+        default=os.getenv("LISTEN_ADDRESS", "0.0.0.0"),
         help="Listen on this address",
     )
     parser.add_argument(
