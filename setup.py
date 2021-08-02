@@ -27,7 +27,7 @@ setup(
         "console_scripts": ["fail2ban_exporter = fail2ban_exporter.cli:main"]
     },
     install_requires=[
-        "prometheus_client>=0.2.0,<0.3",
+        "prometheus_client>=0.11.0,<0.12",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
