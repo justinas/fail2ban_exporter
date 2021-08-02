@@ -4,6 +4,7 @@ Fail2ban exporter for [prometheus.io](https://prometheus.io).
 ![Graph](example.PNG "graph")
 
 ## Requirements
+- fail2ban
 - Python 3
 
 ## Installation
