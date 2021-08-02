@@ -30,7 +30,7 @@ def main():
         help="Listen on this port",
     )
     parser.add_argument(
-        "-ij",
+        "-i",
         "--ignore-jail",
         action="append",
         dest="ignored_jails",
@@ -41,10 +41,10 @@ def main():
     args = parser.parse_args()
 
     client = Fail2BanClient(args.ignored_jails)
+    REGISTRY.register(Collector(client))
 
     # Run HTTP server
     start_http_server(args.port, args.addr)
-    REGISTRY.register(Collector(client))
     while True:
         sleep(10)
 
