@@ -2,12 +2,16 @@
 import os
 import re
 from typing import List
-from subprocess import PIPE, run
+from subprocess import CalledProcessError, PIPE, run
 
 from .jail_stats import JailStats
 
 FAIL2BAN_CLIENT = os.path.join(os.getenv("EXEC_PATH", "/usr/bin/"), "fail2ban-client")
 COMP = re.compile(r"\s([a-zA-Z\s]+):\t([a-zA-Z0-9-,\s]+)\n")
+
+
+class Fail2BanClientError(Exception):
+    """Raised when a fail2ban-client command fails"""
 
 
 class Fail2BanClient:
@@ -23,7 +27,10 @@ class Fail2BanClient:
         if args:
             cmd.extend(args)
 
-        result = run(cmd, stdout=PIPE, check=True)
+        try:
+            result = run(cmd, stdout=PIPE, check=True)
+        except CalledProcessError as err:
+            raise Fail2BanClientError from err
 
         return result.stdout.decode("utf-8")
 

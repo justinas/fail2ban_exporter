@@ -1,4 +1,5 @@
 """Prometheus collector for fail2ban metrics"""
+import logging
 from typing import Iterator
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
@@ -19,7 +20,10 @@ class Collector:
 
     def collect(self) -> Iterator[Metric]:
         """Retrieve fail2ban jail stats"""
+        logging.debug("Collecting metrics")
+
         for jail in self.client.jails():
+            logging.debug("Collecting metrics for jail: %s", jail)
             jail_stats = self.client.jail_stats(jail)
             jail_prefix = f"{PREFIX}_{snake_case(jail)}"
 
