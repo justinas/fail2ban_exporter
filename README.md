@@ -74,6 +74,14 @@ Run Tox tasks for a given Python environment and force its (re)creation:
 $ tox -e py39 -r
 ```
 
+Run Tox task for bump and pin Python test dependency versions:
+
+
+```shell
+$ tox -e pippin
+$ git commit -am "Bump test dependencies"
+```
+
 ### Option 2: Run linters and tests in a Python virtual environment
 
 Create and activate a Python virtualenv:
