@@ -22,34 +22,43 @@ class Collector:
         """Retrieve fail2ban jail stats"""
         logging.debug("Collecting metrics")
 
+        banned_total = CounterMetricFamily(
+            f"{PREFIX}_banned_total",
+            "Banned IPs for the given jail",
+            labels=["jail"],
+        )
+
+        failed_total = CounterMetricFamily(
+            f"{PREFIX}_failed_total",
+            "Failed authentication attempts for the given jail",
+            labels=["jail"],
+        )
+
+        banned = GaugeMetricFamily(
+            f"{PREFIX}_banned",
+            "Banned IPs for the given jail",
+            labels=["jail"],
+        )
+        failed = GaugeMetricFamily(
+            f"{PREFIX}_failed",
+            "Failed authentication attempts for the given jail",
+            labels=["jail"],
+        )
+
         for jail in self.client.jails():
             logging.debug("Collecting metrics for jail: %s", jail)
             jail_stats = self.client.jail_stats(jail)
-            jail_prefix = f"{PREFIX}_{snake_case(jail)}"
 
-            # Counters
-            yield CounterMetricFamily(
-                f"{jail_prefix}_banned_total",
-                f"Banned IPs for the {jail} jail",
-                jail_stats.banned_total,
-            )
-            yield CounterMetricFamily(
-                f"{jail_prefix}_failed_total",
-                f"Failed authentication attempts for the {jail} jail",
-                jail_stats.failed_total,
-            )
+            banned_total.add_metric([jail], jail_stats.banned_total)
+            failed_total.add_metric([jail], jail_stats.failed_total)
 
-            # Gauges
-            yield GaugeMetricFamily(
-                f"{jail_prefix}_banned",
-                f"Banned IPs for the {jail} jail",
-                jail_stats.banned,
-            )
-            yield GaugeMetricFamily(
-                f"{jail_prefix}_failed",
-                f"Failed authentication attempts for the {jail} jail",
-                jail_stats.failed,
-            )
+            banned.add_metric([jail], jail_stats.banned)
+            failed.add_metric([jail], jail_stats.failed)
+
+        yield banned_total
+        yield failed_total
+        yield banned
+        yield failed
 
 
 def snake_case(text):

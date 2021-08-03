@@ -35,20 +35,20 @@ def test_collect():
     collector = Collector(client)
     metrics = list(collector.collect())
 
-    assert len(metrics) == 8
+    assert len(metrics) == 4
 
-    assert get_sample_value(metrics, "fail2ban_apache2_banned") == 7
-    assert get_sample_value(metrics, "fail2ban_apache2_failed") == 46
-    assert get_sample_value(metrics, "fail2ban_apache2_banned_total") == 75
-    assert get_sample_value(metrics, "fail2ban_apache2_failed_total") == 163
+    assert get_sample_value(metrics, "fail2ban_banned", "apache2") == 7
+    assert get_sample_value(metrics, "fail2ban_failed", "apache2") == 46
+    assert get_sample_value(metrics, "fail2ban_banned_total", "apache2") == 75
+    assert get_sample_value(metrics, "fail2ban_failed_total", "apache2") == 163
 
-    assert get_sample_value(metrics, "fail2ban_sshd_banned") == 41
-    assert get_sample_value(metrics, "fail2ban_sshd_failed") == 146
-    assert get_sample_value(metrics, "fail2ban_sshd_banned_total") == 213
-    assert get_sample_value(metrics, "fail2ban_sshd_failed_total") == 297
+    assert get_sample_value(metrics, "fail2ban_banned", "sshd") == 41
+    assert get_sample_value(metrics, "fail2ban_failed", "sshd") == 146
+    assert get_sample_value(metrics, "fail2ban_banned_total", "sshd") == 213
+    assert get_sample_value(metrics, "fail2ban_failed_total", "sshd") == 297
 
 
-def get_sample_value(metrics: List[Metric], name: str):
+def get_sample_value(metrics: List[Metric], name: str, jail: str):
     """Retrieve the sample value for a given metric
 
     Inspired by the test utility provided by
@@ -56,6 +56,6 @@ def get_sample_value(metrics: List[Metric], name: str):
     """
     for metric in metrics:
         for sample in metric.samples:
-            if sample.name == name:
+            if sample.name == name and sample.labels["jail"] == jail:
                 return sample.value
     return None
