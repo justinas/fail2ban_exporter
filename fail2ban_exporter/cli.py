@@ -69,7 +69,7 @@ def main():
                 " to communicate with the fail2ban server"
             )
         )
-        sys.exit()
+        sys.exit(1)
 
     REGISTRY.register(Collector(client))
 
